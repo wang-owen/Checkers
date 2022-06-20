@@ -173,7 +173,8 @@ public class Checkers {
         return legalMoves;
     }
 
-    public static void saveGame(char[][] board, int turns, String fileName) {
+    public static void saveGame(char[][] board, int player, int turns, int p1Captures, int p2Captures,
+            String fileName) {
         BufferedWriter bw;
 
         try {
@@ -186,7 +187,10 @@ public class Checkers {
                 }
                 bw.write("\n");
             }
-            bw.write(turns);
+            bw.write("" + player + "\n");
+            bw.write("" + turns + "\n");
+            bw.write("" + p1Captures + "\n");
+            bw.write("" + p2Captures + "\n");
             bw.close();
         } catch (IOException e) {
             System.out.println(e);
@@ -216,9 +220,30 @@ public class Checkers {
         return board;
     }
 
-    public static void twoPlayer(char[][] board, String fileName) {
+    public static int[] retrieveGameInfo(String fileName) {
+        // variable declaration
+        int[] info = new int[4];
+        BufferedReader br;
+
+        try {
+            br = new BufferedReader(new FileReader(fileName));
+            for (int row = 0; row < 8; row++) {
+                br.readLine();
+            }
+            info[0] = Integer.parseInt(br.readLine()); // current player
+            info[1] = Integer.parseInt(br.readLine()); // turns
+            info[2] = Integer.parseInt(br.readLine()); // pieces captured by P1
+            info[3] = Integer.parseInt(br.readLine()); // pieces captured by P2
+        } catch (IOException e) {
+            System.out.println("No saved game found.\n");
+        }
+        return info;
+    }
+
+    public static void twoPlayer(char[][] board, int player, int turns, int p1Captured, int p2Captured,
+            String fileName) {
         boolean run = true, playing = true, win = true, validMove = false;
-        int player = 1, turns = 0, counter = 1, legalCaptureCount = 0, legalMoveCount = 0, choice;
+        int counter = 1, legalCaptureCount = 0, legalMoveCount = 0, choice;
         char piece = 'x', oppPiece = 'o';
         String coord;
         int[] startCoord = new int[2], newCoord = new int[2], captured = new int[2];
@@ -227,6 +252,14 @@ public class Checkers {
 
         while (playing) {
             run = true;
+            validMove = false;
+            legalCaptureCount = legalMoveCount = 0;
+
+            if (player == 1) {
+                piece = 'x';
+            } else {
+                piece = 'o';
+            }
 
             // prompt current player to move
             System.out.printf("Player %d's move\n", player);
@@ -258,22 +291,25 @@ public class Checkers {
                     run = false;
                     playing = false;
 
-                    saveGame(board, turns, fileName);
+                    saveGame(board, player, turns, p1Captured, p2Captured, fileName);
                 } else if (coord.length() != 2 || coord.charAt(0) < 97 || coord.charAt(0) > 104 || coord.charAt(1) < 49
                         || coord.charAt(1) > 56) {
                     System.out.println("\nInvalid coordinate.");
+                    drawBoard(board);
                 } else {
                     startCoord = coordToIndex(coord);
 
                     // determine if there is a piece at given position
                     if (Character.toLowerCase(board[startCoord[1]][startCoord[0]]) != piece) {
                         System.out.println("\nInvalid piece selected.");
+                        drawBoard(board);
                     } else {
                         piece = board[startCoord[1]][startCoord[0]];
                         legalCaptures = initLegalCaptures(board, piece, coord, startCoord);
                         legalMoves = initLegalMoves(board, piece, coord, startCoord);
                         if (legalCaptures[0][0] == null && legalMoves[0] == null) {
                             System.out.println("\nPiece has no valid moves.");
+                            drawBoard(board);
                         } else {
                             run = false;
                         }
@@ -303,11 +339,11 @@ public class Checkers {
                 do {
                     try {
                         System.out.print("> ");
-                        choice = sc.nextInt();
-                        sc.nextLine();
+                        choice = Integer.parseInt(sc.nextLine());
 
                         if (choice > legalCaptureCount + legalMoveCount || choice < 1) {
                             System.out.println("Invalid option.\n");
+                            drawBoard(board);
                         } else if (choice <= legalCaptureCount) {
                             // chose to capture
                             captured = coordToIndex(legalCaptures[choice - 1][0]);
@@ -320,6 +356,12 @@ public class Checkers {
                             // move piece to new location
                             board[startCoord[1]][startCoord[0]] = ' ';
                             board[newCoord[1]][newCoord[0]] = piece;
+
+                            if (player == 1) {
+                                p1Captured++;
+                            } else {
+                                p2Captured++;
+                            }
 
                             // determine if another piece can be captured
                             do {
@@ -347,6 +389,7 @@ public class Checkers {
                                             run = false;
                                         } else if (choice > legalCaptureCount || choice < 0) {
                                             System.out.println("Invalid option.\n");
+                                            drawBoard(board);
                                         } else {
                                             captured = coordToIndex(legalCaptures[choice - 1][0]);
                                             // remove captured piece
@@ -358,9 +401,16 @@ public class Checkers {
                                             // move piece to new location
                                             board[startCoord[1]][startCoord[0]] = ' ';
                                             board[newCoord[1]][newCoord[0]] = piece;
+
+                                            if (player == 1) {
+                                                p1Captured++;
+                                            } else {
+                                                p2Captured++;
+                                            }
                                         }
                                     } catch (InputMismatchException e) {
                                         System.out.println("Invalid option.\n");
+                                        drawBoard(board);
                                     }
                                 }
                             } while (run);
@@ -379,6 +429,10 @@ public class Checkers {
                         }
                     } catch (InputMismatchException e) {
                         System.out.println("\nInvalid input.");
+                        drawBoard(board);
+                    } catch (NumberFormatException e) {
+                        System.out.println("\nInvalid input.");
+                        drawBoard(board);
                     }
                 } while (!validMove);
 
@@ -393,7 +447,6 @@ public class Checkers {
                         }
                     }
                 }
-                saveGame(board, turns, fileName);
 
                 if (win) {
                     System.out.printf("\nPlayer %d has won!\n", player);
@@ -403,13 +456,13 @@ public class Checkers {
                 // switch player
                 if (player == 1) {
                     player = 2;
-                    piece = 'o';
                     oppPiece = 'x';
                 } else {
                     player = 1;
-                    piece = 'x';
                     oppPiece = 'o';
                 }
+
+                saveGame(board, player, turns, p1Captured, p2Captured, fileName);
             }
         }
         System.out.printf("Game lasted %d turns\n\n", turns);
@@ -420,6 +473,7 @@ public class Checkers {
         char[][] board = new char[8][8];
         boolean run = true, onePlayer = false;
         String name1, name2, choice, fileName;
+        int[] info;
 
         while (run) {
             // prompt for player count
@@ -457,7 +511,7 @@ public class Checkers {
                         do {
                             System.out.print(
                                     "\nWould you like to load an in-progress game (a) or start a new game (b)?\n> ");
-                            choice = sc.nextLine();
+                            choice = sc.nextLine().toLowerCase();
                             switch (choice) {
                                 case "a":
                                     // search for existing file
@@ -466,8 +520,9 @@ public class Checkers {
                                         run = false;
                                         break;
                                     } else {
+                                        info = retrieveGameInfo(fileName);
                                         drawBoard(board);
-                                        twoPlayer(board, fileName);
+                                        twoPlayer(board, info[0], info[1], info[2], info[3], fileName);
                                         run = false;
                                         break;
                                     }
@@ -475,7 +530,7 @@ public class Checkers {
                                 case "b":
                                     board = generateBoard();
                                     drawBoard(board);
-                                    twoPlayer(board, fileName);
+                                    twoPlayer(board, 1, 0, 0, 0, fileName);
                                     run = false;
                                     break;
 
