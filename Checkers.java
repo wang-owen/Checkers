@@ -240,6 +240,11 @@ public class Checkers {
         return info;
     }
 
+    public static void onePlayer(char[][] board, int player, int turns, int p1Captured, int p2Captured,
+            String fileName) {
+        System.out.println("AI is not available.");
+    }
+
     public static void twoPlayer(char[][] board, int player, int turns, int p1Captured, int p2Captured,
             String fileName) {
         boolean run = true, playing = true, win = true, validMove = false;
@@ -286,7 +291,7 @@ public class Checkers {
                     } else {
                         player = 1;
                     }
-                    System.out.printf("Player %d has won!\n", player);
+                    System.out.printf("\nPlayer %d has won!\n", player);
                 } else if (coord.equals("s")) {
                     run = false;
                     playing = false;
@@ -449,6 +454,10 @@ public class Checkers {
                 }
 
                 if (win) {
+                    // delete file
+                    File file = new File(fileName);
+                    file.delete();
+
                     System.out.printf("\nPlayer %d has won!\n", player);
                     playing = false;
                 }
@@ -465,13 +474,13 @@ public class Checkers {
                 saveGame(board, player, turns, p1Captured, p2Captured, fileName);
             }
         }
-        System.out.printf("Game lasted %d turns\n\n", turns);
+        System.out.printf("Game lasted %d turns\n", turns);
     }
 
     public static void main(String[] args) {
         // variable declaration
         char[][] board = new char[8][8];
-        boolean run = true, onePlayer = false;
+        boolean run = true;
         String name1, name2, choice, fileName;
         int[] info;
 
@@ -482,8 +491,46 @@ public class Checkers {
 
                 switch (sc.nextLine().replaceAll("\\s+", "")) {
                     case "1":
-                        onePlayer = true;
-                        run = false;
+                        System.out.print("\nEnter player name: ");
+                        name1 = sc.nextLine();
+                        try {
+                            name1 = (name1.substring(0, 1).toUpperCase() + name1.substring(1).toLowerCase()).substring(
+                                    0,
+                                    name1.indexOf(' '));
+                        } catch (StringIndexOutOfBoundsException e) {
+                            name1 = name1.substring(0, 1).toUpperCase() + name1.substring(1).toLowerCase();
+                        }
+                        fileName = name1 + ".txt";
+                        do {
+                            System.out.print(
+                                    "\nWould you like to load an in-progress game (a) or start a new game (b)?\n> ");
+                            choice = sc.nextLine().toLowerCase();
+                            switch (choice) {
+                                case "a":
+                                    // search for existing file
+                                    board = retrieveGame(fileName);
+                                    if (board[0][0] == '0') {
+                                        run = false;
+                                        break;
+                                    } else {
+                                        info = retrieveGameInfo(fileName);
+                                        drawBoard(board);
+                                        onePlayer(board, info[0], info[1], info[2], info[3], fileName);
+                                        run = false;
+                                        break;
+                                    }
+
+                                case "b":
+                                    board = generateBoard();
+                                    drawBoard(board);
+                                    onePlayer(board, 1, 0, 0, 0, fileName);
+                                    run = false;
+                                    break;
+
+                                default:
+                                    System.out.println("Invalid option.");
+                            }
+                        } while (run);
                         break;
 
                     case "2":
@@ -544,13 +591,6 @@ public class Checkers {
                         System.out.println("Invalid option.\n");
                 }
             } while (run);
-            run = true;
-
-            // vs AI
-            while (onePlayer) {
-                System.out.println("\nAI is not available.");
-                onePlayer = false;
-            }
         }
     }
 }
