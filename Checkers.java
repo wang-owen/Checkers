@@ -542,6 +542,8 @@ public class Checkers {
                 }
             }
         }
+        System.out.printf("Player 1 captured %d pieces.\n", p1Captured);
+        System.out.printf("Player 2 captured %d pieces.\n", p2Captured);
         System.out.printf("Game lasted %d turns\n", turns);
     }
 
