@@ -182,7 +182,7 @@ public class Checkers {
 
             // read board
             for (int row = 0; row < board.length; row++) {
-                for (int col = 0; col < board.length; col++) {
+                for (int col = 0; col < board[row].length; col++) {
                     bw.write(board[row][col]);
                 }
                 bw.write("\n");
@@ -208,7 +208,7 @@ public class Checkers {
             br = new BufferedReader(new FileReader(fileName));
             for (int row = 0; row < board.length; row++) {
                 line = br.readLine();
-                for (int col = 0; col < board.length; col++) {
+                for (int col = 0; col < board[row].length; col++) {
                     board[row][col] = line.charAt(col);
                 }
             }
@@ -216,7 +216,6 @@ public class Checkers {
             System.out.println("No saved game found.\n");
             board[0][0] = '0';
         }
-
         return board;
     }
 
@@ -240,12 +239,43 @@ public class Checkers {
         return info;
     }
 
-    public static void onePlayer(char[][] board, int player, int turns, int p1Captured, int p2Captured,
-            String fileName) {
-        System.out.println("AI is not available.");
+    public static char[][] AI(char[][] board) {
+        // variable declaration
+        boolean run = true, capture = false;
+        char piece = 'o';
+        String[][] legalCaptures;
+        String[] legalMoves;
+        int[] startCoord = new int[2];
+
+        // check legal captures
+        for (int row = 0; row < board.length & run; row++) {
+            for (int col = 0; col < board[row].length & run; col++) {
+                startCoord[1] = col;
+                startCoord[0] = row;
+                legalCaptures = initLegalCaptures(board, piece, "" + (char) (col + 97) + (row + 1), startCoord);
+                if (legalCaptures[0][0] != null) {
+                    run = false;
+                }
+            }
+        }
+
+        // check legal moves
+        if (!capture) {
+            for (int row = 0; row < board.length & run; row++) {
+                for (int col = 0; col < board[row].length & run; col++) {
+                    startCoord[1] = col;
+                    startCoord[0] = row;
+                    legalMoves = initLegalMoves(board, piece, "" + (char) (col + 97) + (row + 1), startCoord);
+                    if (legalMoves[0] != null) {
+                        run = false;
+                    }
+                }
+            }
+        }
+        return board;
     }
 
-    public static void twoPlayer(char[][] board, int player, int turns, int p1Captured, int p2Captured,
+    public static void play(boolean AI, char[][] board, int player, int turns, int p1Captured, int p2Captured,
             String fileName) {
         boolean run = true, playing = true, win = true, validMove = false;
         int counter = 1, legalCaptureCount = 0, legalMoveCount = 0, choice;
@@ -266,187 +296,16 @@ public class Checkers {
                 piece = 'o';
             }
 
-            // prompt current player to move
-            System.out.printf("Player %d's move\n", player);
-
-            // prompt for starting piece location
-            do {
-                System.out.println("Enter piece coordinate: ");
-                System.out.println("Q to give up");
-                System.out.println("S to save and quit");
-                System.out.print("> ");
-                coord = sc.nextLine().toLowerCase().replaceAll("\\s+", "");
-
-                // determine if valid coord
-                if (coord.equals("q")) {
-                    run = false;
-                    playing = false;
-
-                    // delete file
-                    File file = new File(fileName);
-                    file.delete();
-
-                    if (player == 1) {
-                        player = 2;
-                    } else {
-                        player = 1;
-                    }
-                    System.out.printf("\nPlayer %d has won!\n", player);
-                } else if (coord.equals("s")) {
-                    run = false;
-                    playing = false;
-
-                    saveGame(board, player, turns, p1Captured, p2Captured, fileName);
-                } else if (coord.length() != 2 || coord.charAt(0) < 97 || coord.charAt(0) > 104 || coord.charAt(1) < 49
-                        || coord.charAt(1) > 56) {
-                    System.out.println("\nInvalid coordinate.");
-                    drawBoard(board);
-                } else {
-                    startCoord = coordToIndex(coord);
-
-                    // determine if there is a piece at given position
-                    if (Character.toLowerCase(board[startCoord[1]][startCoord[0]]) != piece) {
-                        System.out.println("\nInvalid piece selected.");
-                        drawBoard(board);
-                    } else {
-                        piece = board[startCoord[1]][startCoord[0]];
-                        legalCaptures = initLegalCaptures(board, piece, coord, startCoord);
-                        legalMoves = initLegalMoves(board, piece, coord, startCoord);
-                        if (legalCaptures[0][0] == null && legalMoves[0] == null) {
-                            System.out.println("\nPiece has no valid moves.");
-                            drawBoard(board);
-                        } else {
-                            run = false;
-                        }
-                    }
-                }
-            } while (run);
-
-            if (playing) {
-                // determine valid move positions
-                System.out.println("\nSelect from valid moves:");
-                // display possible captures
-                counter = 1;
-                for (int i = 0; i < legalCaptures.length && legalCaptures[i][0] != null; i++) {
-                    System.out.printf("%d: x%s\n", counter, legalCaptures[i][0]);
-                    legalCaptureCount++;
-                    counter++;
-                }
-
-                // display possible moves
-                for (int i = 0; i < legalMoves.length && legalMoves[i] != null; i++) {
-                    System.out.printf("%d: %s\n", counter, legalMoves[i]);
-                    legalMoveCount++;
-                    counter++;
-                }
-
-                // prompt for move
-                do {
-                    try {
-                        System.out.print("> ");
-                        choice = Integer.parseInt(sc.nextLine());
-
-                        if (choice > legalCaptureCount + legalMoveCount || choice < 1) {
-                            System.out.println("Invalid option.\n");
-                            drawBoard(board);
-                        } else if (choice <= legalCaptureCount) {
-                            // chose to capture
-                            captured = coordToIndex(legalCaptures[choice - 1][0]);
-                            // remove captured piece
-                            board[captured[1]][captured[0]] = ' ';
-                            newCoord = coordToIndex(legalCaptures[choice - 1][1]);
-                            if (newCoord[1] == 7 || newCoord[1] == 0) {
-                                piece = Character.toUpperCase(piece);
-                            }
-                            // move piece to new location
-                            board[startCoord[1]][startCoord[0]] = ' ';
-                            board[newCoord[1]][newCoord[0]] = piece;
-
-                            if (player == 1) {
-                                p1Captured++;
-                            } else {
-                                p2Captured++;
-                            }
-
-                            // determine if another piece can be captured
-                            do {
-                                coord = legalCaptures[choice - 1][1];
-                                startCoord = coordToIndex(coord);
-                                legalCaptures = initLegalCaptures(board, piece, coord, startCoord);
-
-                                if (legalCaptures[0][0] == null) {
-                                    run = false;
-                                } else {
-                                    drawBoard(board);
-                                    // display new legal captures
-                                    legalCaptureCount = 0;
-                                    System.out.println("\nSelect from valid captures (0 to cancel):");
-                                    for (int i = 0; i < legalCaptures.length && legalCaptures[i][0] != null; i++) {
-                                        System.out.printf("%d: x%s\n", i + 1, legalCaptures[i][0]);
-                                        legalCaptureCount++;
-                                    }
-                                    try {
-                                        System.out.print("> ");
-                                        choice = sc.nextInt();
-                                        sc.nextLine();
-
-                                        if (choice == 0) {
-                                            run = false;
-                                        } else if (choice > legalCaptureCount || choice < 0) {
-                                            System.out.println("Invalid option.\n");
-                                            drawBoard(board);
-                                        } else {
-                                            captured = coordToIndex(legalCaptures[choice - 1][0]);
-                                            // remove captured piece
-                                            board[captured[1]][captured[0]] = ' ';
-                                            newCoord = coordToIndex(legalCaptures[choice - 1][1]);
-                                            if (newCoord[1] == 7 || newCoord[1] == 0) {
-                                                piece = Character.toUpperCase(piece);
-                                            }
-                                            // move piece to new location
-                                            board[startCoord[1]][startCoord[0]] = ' ';
-                                            board[newCoord[1]][newCoord[0]] = piece;
-
-                                            if (player == 1) {
-                                                p1Captured++;
-                                            } else {
-                                                p2Captured++;
-                                            }
-                                        }
-                                    } catch (InputMismatchException e) {
-                                        System.out.println("Invalid option.\n");
-                                        drawBoard(board);
-                                    }
-                                }
-                            } while (run);
-
-                            validMove = true;
-                        } else {
-                            // chose to move
-                            newCoord = coordToIndex(legalMoves[choice - legalCaptureCount - 1]);
-                            if (newCoord[1] == 7 || newCoord[1] == 0) {
-                                piece = Character.toUpperCase(piece);
-                            }
-                            // move piece to new location
-                            board[startCoord[1]][startCoord[0]] = ' ';
-                            board[newCoord[1]][newCoord[0]] = piece;
-                            validMove = true;
-                        }
-                    } catch (InputMismatchException e) {
-                        System.out.println("\nInvalid input.");
-                        drawBoard(board);
-                    } catch (NumberFormatException e) {
-                        System.out.println("\nInvalid input.");
-                        drawBoard(board);
-                    }
-                } while (!validMove);
+            if (player == 2 && AI) {
+                board = AI(board);
+                drawBoard(board);
 
                 turns++;
                 drawBoard(board);
 
                 // determine if game has been won
                 for (int row = 0; row < board.length; row++) {
-                    for (int col = 0; col < board.length && win; col++) {
+                    for (int col = 0; col < board[row].length && win; col++) {
                         if (board[row][col] == oppPiece) {
                             win = false;
                         }
@@ -472,6 +331,215 @@ public class Checkers {
                 }
 
                 saveGame(board, player, turns, p1Captured, p2Captured, fileName);
+            } else {
+
+                // prompt current player to move
+                System.out.printf("Player %d's move\n", player);
+
+                // prompt for starting piece location
+                do {
+                    System.out.println("Enter piece coordinate: ");
+                    System.out.println("Q to give up");
+                    System.out.println("S to save and quit");
+                    System.out.print("> ");
+                    coord = sc.nextLine().toLowerCase().replaceAll("\\s+", "");
+
+                    // determine if valid coord
+                    if (coord.equals("q")) {
+                        run = false;
+                        playing = false;
+
+                        // delete file
+                        File file = new File(fileName);
+                        file.delete();
+
+                        if (player == 1) {
+                            player = 2;
+                        } else {
+                            player = 1;
+                        }
+                        System.out.printf("\nPlayer %d has won!\n", player);
+                    } else if (coord.equals("s")) {
+                        run = false;
+                        playing = false;
+
+                        saveGame(board, player, turns, p1Captured, p2Captured, fileName);
+                    } else if (coord.length() != 2 || coord.charAt(0) < 97 || coord.charAt(0) > 104
+                            || coord.charAt(1) < 49
+                            || coord.charAt(1) > 56) {
+                        System.out.println("\nInvalid coordinate.");
+                        drawBoard(board);
+                    } else {
+                        startCoord = coordToIndex(coord);
+
+                        // determine if there is a piece at given position
+                        if (Character.toLowerCase(board[startCoord[1]][startCoord[0]]) != piece) {
+                            drawBoard(board);
+                            System.out.println("\nInvalid piece selected.");
+                        } else {
+                            piece = board[startCoord[1]][startCoord[0]];
+                            legalCaptures = initLegalCaptures(board, piece, coord, startCoord);
+                            legalMoves = initLegalMoves(board, piece, coord, startCoord);
+                            if (legalCaptures[0][0] == null && legalMoves[0] == null) {
+                                System.out.println("\nPiece has no valid moves.");
+                                drawBoard(board);
+                            } else {
+                                run = false;
+                            }
+                        }
+                    }
+                } while (run);
+
+                if (playing) {
+                    // prompt for move
+                    do {
+                        try {
+                            // determine valid move positions
+                            System.out.println("\nSelect from valid moves:");
+                            // display possible captures
+                            counter = 1;
+                            for (int i = 0; i < legalCaptures.length && legalCaptures[i][0] != null; i++) {
+                                System.out.printf("%d: x%s\n", counter, legalCaptures[i][0]);
+                                legalCaptureCount++;
+                                counter++;
+                            }
+
+                            // display possible moves
+                            for (int i = 0; i < legalMoves.length && legalMoves[i] != null; i++) {
+                                System.out.printf("%d: %s\n", counter, legalMoves[i]);
+                                legalMoveCount++;
+                                counter++;
+                            }
+                            System.out.print("> ");
+                            choice = Integer.parseInt(sc.nextLine());
+
+                            if (choice > legalCaptureCount + legalMoveCount || choice < 1) {
+                                drawBoard(board);
+                                System.out.println("Invalid option.");
+                            } else if (choice <= legalCaptureCount) {
+                                // chose to capture
+                                captured = coordToIndex(legalCaptures[choice - 1][0]);
+                                // remove captured piece
+                                board[captured[1]][captured[0]] = ' ';
+                                newCoord = coordToIndex(legalCaptures[choice - 1][1]);
+                                if (newCoord[1] == 7 || newCoord[1] == 0) {
+                                    piece = Character.toUpperCase(piece);
+                                }
+                                // move piece to new location
+                                board[startCoord[1]][startCoord[0]] = ' ';
+                                board[newCoord[1]][newCoord[0]] = piece;
+
+                                if (player == 1) {
+                                    p1Captured++;
+                                } else {
+                                    p2Captured++;
+                                }
+
+                                // determine if another piece can be captured
+                                do {
+                                    coord = legalCaptures[choice - 1][1];
+                                    startCoord = coordToIndex(coord);
+                                    legalCaptures = initLegalCaptures(board, piece, coord, startCoord);
+
+                                    if (legalCaptures[0][0] == null) {
+                                        run = false;
+                                    } else {
+                                        drawBoard(board);
+                                        // display new legal captures
+                                        legalCaptureCount = 0;
+                                        System.out.println("\nSelect from valid captures (0 to cancel):");
+                                        for (int i = 0; i < legalCaptures.length && legalCaptures[i][0] != null; i++) {
+                                            System.out.printf("%d: x%s\n", i + 1, legalCaptures[i][0]);
+                                            legalCaptureCount++;
+                                        }
+                                        try {
+                                            System.out.print("> ");
+                                            choice = sc.nextInt();
+                                            sc.nextLine();
+
+                                            if (choice == 0) {
+                                                run = false;
+                                            } else if (choice > legalCaptureCount || choice < 0) {
+                                                System.out.println("Invalid option.");
+                                                drawBoard(board);
+                                            } else {
+                                                captured = coordToIndex(legalCaptures[choice - 1][0]);
+                                                // remove captured piece
+                                                board[captured[1]][captured[0]] = ' ';
+                                                newCoord = coordToIndex(legalCaptures[choice - 1][1]);
+                                                if (newCoord[1] == 7 || newCoord[1] == 0) {
+                                                    piece = Character.toUpperCase(piece);
+                                                }
+                                                // move piece to new location
+                                                board[startCoord[1]][startCoord[0]] = ' ';
+                                                board[newCoord[1]][newCoord[0]] = piece;
+
+                                                if (player == 1) {
+                                                    p1Captured++;
+                                                } else {
+                                                    p2Captured++;
+                                                }
+                                            }
+                                        } catch (InputMismatchException e) {
+                                            drawBoard(board);
+                                            System.out.println("Invalid option.");
+                                        }
+                                    }
+                                } while (run);
+
+                                validMove = true;
+                            } else {
+                                // chose to move
+                                newCoord = coordToIndex(legalMoves[choice - legalCaptureCount - 1]);
+                                if (newCoord[1] == 7 || newCoord[1] == 0) {
+                                    piece = Character.toUpperCase(piece);
+                                }
+                                // move piece to new location
+                                board[startCoord[1]][startCoord[0]] = ' ';
+                                board[newCoord[1]][newCoord[0]] = piece;
+                                validMove = true;
+                            }
+                        } catch (InputMismatchException e) {
+                            drawBoard(board);
+                            System.out.println("Invalid input.");
+                        } catch (NumberFormatException e) {
+                            drawBoard(board);
+                            System.out.println("Invalid input.");
+                        }
+                    } while (!validMove);
+
+                    turns++;
+                    drawBoard(board);
+
+                    // determine if game has been won
+                    for (int row = 0; row < board.length; row++) {
+                        for (int col = 0; col < board[row].length && win; col++) {
+                            if (board[row][col] == oppPiece) {
+                                win = false;
+                            }
+                        }
+                    }
+
+                    if (win) {
+                        // delete file
+                        File file = new File(fileName);
+                        file.delete();
+
+                        System.out.printf("\nPlayer %d has won!\n", player);
+                        playing = false;
+                    }
+
+                    // switch player
+                    if (player == 1) {
+                        player = 2;
+                        oppPiece = 'x';
+                    } else {
+                        player = 1;
+                        oppPiece = 'o';
+                    }
+
+                    saveGame(board, player, turns, p1Captured, p2Captured, fileName);
+                }
             }
         }
         System.out.printf("Game lasted %d turns\n", turns);
@@ -515,7 +583,7 @@ public class Checkers {
                                     } else {
                                         info = retrieveGameInfo(fileName);
                                         drawBoard(board);
-                                        onePlayer(board, info[0], info[1], info[2], info[3], fileName);
+                                        play(true, board, info[0], info[1], info[2], info[3], fileName);
                                         run = false;
                                         break;
                                     }
@@ -523,7 +591,7 @@ public class Checkers {
                                 case "b":
                                     board = generateBoard();
                                     drawBoard(board);
-                                    onePlayer(board, 1, 0, 0, 0, fileName);
+                                    play(true, board, 1, 0, 0, 0, fileName);
                                     run = false;
                                     break;
 
@@ -569,7 +637,7 @@ public class Checkers {
                                     } else {
                                         info = retrieveGameInfo(fileName);
                                         drawBoard(board);
-                                        twoPlayer(board, info[0], info[1], info[2], info[3], fileName);
+                                        play(false, board, info[0], info[1], info[2], info[3], fileName);
                                         run = false;
                                         break;
                                     }
@@ -577,7 +645,7 @@ public class Checkers {
                                 case "b":
                                     board = generateBoard();
                                     drawBoard(board);
-                                    twoPlayer(board, 1, 0, 0, 0, fileName);
+                                    play(false, board, 1, 0, 0, 0, fileName);
                                     run = false;
                                     break;
 
