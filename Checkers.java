@@ -239,40 +239,71 @@ public class Checkers {
         return info;
     }
 
-    public static char[][] AI(char[][] board) {
+    public static boolean AI(char[][] board) {
         // variable declaration
         boolean run = true, capture = false;
         char piece = 'o';
         String[][] legalCaptures;
         String[] legalMoves;
-        int[] startCoord = new int[2];
+        int[] startCoord = new int[2], newCoord = new int[2], captured = new int[2];
+        boolean AICaptured = false;
 
         // check legal captures
         for (int row = 0; row < board.length & run; row++) {
             for (int col = 0; col < board[row].length & run; col++) {
-                startCoord[1] = col;
-                startCoord[0] = row;
-                legalCaptures = initLegalCaptures(board, piece, "" + (char) (col + 97) + (row + 1), startCoord);
-                if (legalCaptures[0][0] != null) {
-                    run = false;
+                if (board[row][col] == piece) {
+                    startCoord[0] = col;
+                    startCoord[1] = row;
+                    legalCaptures = initLegalCaptures(board, piece, "" + (char) (col + 97) + (Math.abs(row - 8)),
+                            startCoord);
+                    if (legalCaptures[0][0] != null) {
+                        // legal capture available
+                        run = false;
+                        capture = true;
+
+                        // chose to capture
+                        captured = coordToIndex(legalCaptures[0][0]);
+                        // remove captured piece
+                        board[captured[1]][captured[0]] = ' ';
+                        newCoord = coordToIndex(legalCaptures[0][1]);
+                        if (newCoord[1] == 7 || newCoord[1] == 0) {
+                            piece = Character.toUpperCase(piece);
+                        }
+                        // move piece to new location
+                        board[startCoord[1]][startCoord[0]] = ' ';
+                        board[newCoord[1]][newCoord[0]] = piece;
+
+                        AICaptured = true;
+                    }
                 }
             }
         }
 
         // check legal moves
         if (!capture) {
+            run = true;
             for (int row = 0; row < board.length & run; row++) {
                 for (int col = 0; col < board[row].length & run; col++) {
-                    startCoord[1] = col;
-                    startCoord[0] = row;
-                    legalMoves = initLegalMoves(board, piece, "" + (char) (col + 97) + (row + 1), startCoord);
-                    if (legalMoves[0] != null) {
-                        run = false;
+                    if (board[row][col] == piece) {
+                        startCoord[0] = col;
+                        startCoord[1] = row;
+                        legalMoves = initLegalMoves(board, piece, "" + (char) (col + 97) + (Math.abs(row - 8)),
+                                startCoord);
+                        if (legalMoves[0] != null) {
+                            // legal move available
+                            run = false;
+                            newCoord = coordToIndex(legalMoves[0]);
+                            if (newCoord[1] == 7 || newCoord[1] == 0) {
+                                piece = Character.toUpperCase(piece);
+                            }
+                            board[startCoord[1]][startCoord[0]] = ' ';
+                            board[newCoord[1]][newCoord[0]] = piece;
+                        }
                     }
                 }
             }
         }
-        return board;
+        return AICaptured;
     }
 
     public static void play(boolean AI, char[][] board, int player, int turns, int p1Captured, int p2Captured,
@@ -297,11 +328,11 @@ public class Checkers {
             }
 
             if (player == 2 && AI) {
-                board = AI(board);
+                if (AI(board)) {
+                    p2Captured++;
+                }
                 drawBoard(board);
-
                 turns++;
-                drawBoard(board);
 
                 // determine if game has been won
                 for (int row = 0; row < board.length; row++) {
@@ -543,21 +574,27 @@ public class Checkers {
             }
         }
         System.out.printf("Player 1 captured %d pieces.\n", p1Captured);
-        System.out.printf("Player 2 captured %d pieces.\n", p2Captured);
-        System.out.printf("Game lasted %d turns\n", turns);
+        if (AI) {
+            System.out.printf("Computer captured %d pieces.\n", p2Captured);
+        } else {
+            System.out.printf("Player 2 captured %d pieces.\n", p2Captured);
+        }
+        System.out.printf("Game lasted %d turns\n\n", turns);
     }
 
     public static void main(String[] args) {
         // variable declaration
         char[][] board = new char[8][8];
         boolean run = true;
-        String name1, name2, choice, fileName;
+        String name1, name2, fileName;
         int[] info;
 
         while (run) {
             // prompt for player count
             do {
-                System.out.print("\nHow many players are there? (1/2)\n> ");
+                System.out.println("\nSelect gamemode:");
+                System.out.println("  1. vs Computer");
+                System.out.print("  2. Two-player\n  > ");
 
                 switch (sc.nextLine().replaceAll("\\s+", "")) {
                     case "1":
@@ -572,11 +609,11 @@ public class Checkers {
                         }
                         fileName = name1 + ".txt";
                         do {
-                            System.out.print(
-                                    "\nWould you like to load an in-progress game (a) or start a new game (b)?\n> ");
-                            choice = sc.nextLine().toLowerCase();
-                            switch (choice) {
-                                case "a":
+                            System.out.println("\nSelect option:");
+                            System.out.println("  1. Load in-progress game");
+                            System.out.print("  2. Start new game\n  > ");
+                            switch (sc.nextLine().replaceAll("\\s+", "")) {
+                                case "1":
                                     // search for existing file
                                     board = retrieveGame(fileName);
                                     if (board[0][0] == '0') {
@@ -586,14 +623,51 @@ public class Checkers {
                                         info = retrieveGameInfo(fileName);
                                         drawBoard(board);
                                         play(true, board, info[0], info[1], info[2], info[3], fileName);
-                                        run = false;
+                                        do {
+                                            System.out.println("\nSelect option:");
+                                            System.out.println("  1. Start new game");
+                                            System.out.print("  2. Quit\n  > ");
+                                            switch (sc.nextLine().replaceAll("\\s+", "")) {
+                                                case "1":
+                                                    board = generateBoard();
+                                                    drawBoard(board);
+                                                    play(true, board, info[0], info[1], info[2], info[3], fileName);
+                                                    break;
+
+                                                case "2":
+                                                    run = false;
+                                                    break;
+
+                                                default:
+                                                    System.out.println("Invalid option");
+                                            }
+                                        } while (run);
                                         break;
                                     }
 
-                                case "b":
+                                case "2":
                                     board = generateBoard();
                                     drawBoard(board);
                                     play(true, board, 1, 0, 0, 0, fileName);
+                                    do {
+                                        System.out.println("\nSelect option:");
+                                        System.out.println("  1. Start new game");
+                                        System.out.print("  2. Quit\n  > ");
+                                        switch (sc.nextLine().replaceAll("\\s+", "")) {
+                                            case "1":
+                                                board = generateBoard();
+                                                drawBoard(board);
+                                                play(true, board, 1, 0, 0, 0, fileName);
+                                                break;
+
+                                            case "2":
+                                                run = false;
+                                                break;
+
+                                            default:
+                                                System.out.println("Invalid option");
+                                        }
+                                    } while (run);
                                     run = false;
                                     break;
 
@@ -626,11 +700,11 @@ public class Checkers {
 
                         fileName = name1 + "-" + name2 + ".txt";
                         do {
-                            System.out.print(
-                                    "\nWould you like to load an in-progress game (a) or start a new game (b)?\n> ");
-                            choice = sc.nextLine().toLowerCase();
-                            switch (choice) {
-                                case "a":
+                            System.out.println("\nSelect option:");
+                            System.out.println("  1. Load in-progress game");
+                            System.out.print("  2. Start new game\n  > ");
+                            switch (sc.nextLine().replaceAll("\\s+", "")) {
+                                case "1":
                                     // search for existing file
                                     board = retrieveGame(fileName);
                                     if (board[0][0] == '0') {
@@ -640,14 +714,51 @@ public class Checkers {
                                         info = retrieveGameInfo(fileName);
                                         drawBoard(board);
                                         play(false, board, info[0], info[1], info[2], info[3], fileName);
-                                        run = false;
+                                        do {
+                                            System.out.println("\nSelect option:");
+                                            System.out.println("  1. Start new game");
+                                            System.out.print("  2. Quit\n  > ");
+                                            switch (sc.nextLine().replaceAll("\\s+", "")) {
+                                                case "1":
+                                                    board = generateBoard();
+                                                    drawBoard(board);
+                                                    play(false, board, info[0], info[1], info[2], info[3], fileName);
+                                                    break;
+
+                                                case "2":
+                                                    run = false;
+                                                    break;
+
+                                                default:
+                                                    System.out.println("Invalid option");
+                                            }
+                                        } while (run);
                                         break;
                                     }
 
-                                case "b":
+                                case "2":
                                     board = generateBoard();
                                     drawBoard(board);
                                     play(false, board, 1, 0, 0, 0, fileName);
+                                    do {
+                                        System.out.println("\nSelect option:");
+                                        System.out.println("  1. Start new game");
+                                        System.out.print("  2. Quit\n  > ");
+                                        switch (sc.nextLine().replaceAll("\\s+", "")) {
+                                            case "1":
+                                                board = generateBoard();
+                                                drawBoard(board);
+                                                play(false, board, 1, 0, 0, 0, fileName);
+                                                break;
+
+                                            case "2":
+                                                run = false;
+                                                break;
+
+                                            default:
+                                                System.out.println("Invalid option");
+                                        }
+                                    } while (run);
                                     run = false;
                                     break;
 
