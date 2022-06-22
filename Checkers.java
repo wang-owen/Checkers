@@ -410,6 +410,7 @@ public class Checkers {
                 drawBoard(board);
                 turns++;
 
+                win = true;
                 // determine if game has been won
                 for (int row = 0; row < board.length; row++) {
                     for (int col = 0; col < board[row].length && win; col++) {
@@ -454,7 +455,6 @@ public class Checkers {
                     // determine if valid coord
                     if (coord.equals("q")) {
                         run = playing = false;
-                        win = true;
 
                         // delete file
                         File file = new File(fileName);
@@ -467,8 +467,7 @@ public class Checkers {
                         }
                         System.out.printf("\nPlayer %d has won!\n", player);
                     } else if (coord.equals("s")) {
-                        run = false;
-                        playing = false;
+                        run = playing = false;
 
                         saveGame(board, player, turns, p1Captured, p2Captured, fileName);
                     } else if (coord.length() != 2 || coord.charAt(0) < 97 || coord.charAt(0) > 104
@@ -619,6 +618,7 @@ public class Checkers {
                     drawBoard(board);
 
                     // determine if game has been won
+                    win = true;
                     for (int row = 0; row < board.length && win; row++) {
                         for (int col = 0; col < board[row].length && win; col++) {
                             if (board[row][col] == oppPiece) {
