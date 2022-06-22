@@ -453,8 +453,8 @@ public class Checkers {
 
                     // determine if valid coord
                     if (coord.equals("q")) {
-                        run = false;
-                        playing = false;
+                        run = playing = false;
+                        win = true;
 
                         // delete file
                         File file = new File(fileName);
@@ -619,7 +619,7 @@ public class Checkers {
                     drawBoard(board);
 
                     // determine if game has been won
-                    for (int row = 0; row < board.length; row++) {
+                    for (int row = 0; row < board.length && win; row++) {
                         for (int col = 0; col < board[row].length && win; col++) {
                             if (board[row][col] == oppPiece) {
                                 win = false;
@@ -634,18 +634,18 @@ public class Checkers {
 
                         System.out.printf("\nPlayer %d has won!\n", player);
                         playing = false;
-                    }
-
-                    // switch player
-                    if (player == 1) {
-                        player = 2;
-                        oppPiece = 'x';
                     } else {
-                        player = 1;
-                        oppPiece = 'o';
-                    }
+                        // switch player
+                        if (player == 1) {
+                            player = 2;
+                            oppPiece = 'x';
+                        } else {
+                            player = 1;
+                            oppPiece = 'o';
+                        }
 
-                    saveGame(board, player, turns, p1Captured, p2Captured, fileName);
+                        saveGame(board, player, turns, p1Captured, p2Captured, fileName);
+                    }
                 }
             }
         }
@@ -700,7 +700,7 @@ public class Checkers {
                                         drawBoard(board);
                                         play(true, board, info[0], info[1], info[2], info[3], fileName);
                                         do {
-                                            System.out.println("\nSelect option:");
+                                            System.out.println("Select option:");
                                             System.out.println("  1. Start new game");
                                             System.out.print("  2. Quit\n  > ");
                                             switch (sc.nextLine().replaceAll("\\s+", "")) {
@@ -715,7 +715,7 @@ public class Checkers {
                                                     break;
 
                                                 default:
-                                                    System.out.println("Invalid option");
+                                                    System.out.println("\nInvalid option.");
                                             }
                                         } while (run);
                                         break;
@@ -726,7 +726,7 @@ public class Checkers {
                                     drawBoard(board);
                                     play(true, board, 1, 0, 0, 0, fileName);
                                     do {
-                                        System.out.println("\nSelect option:");
+                                        System.out.println("Select option:");
                                         System.out.println("  1. Start new game");
                                         System.out.print("  2. Quit\n  > ");
                                         switch (sc.nextLine().replaceAll("\\s+", "")) {
@@ -741,7 +741,7 @@ public class Checkers {
                                                 break;
 
                                             default:
-                                                System.out.println("Invalid option");
+                                                System.out.println("\nInvalid option.");
                                         }
                                     } while (run);
                                     run = false;
@@ -791,7 +791,7 @@ public class Checkers {
                                         drawBoard(board);
                                         play(false, board, info[0], info[1], info[2], info[3], fileName);
                                         do {
-                                            System.out.println("\nSelect option:");
+                                            System.out.println("Select option:");
                                             System.out.println("  1. Start new game");
                                             System.out.print("  2. Quit\n  > ");
                                             switch (sc.nextLine().replaceAll("\\s+", "")) {
@@ -806,7 +806,7 @@ public class Checkers {
                                                     break;
 
                                                 default:
-                                                    System.out.println("Invalid option");
+                                                    System.out.println("\nInvalid option.");
                                             }
                                         } while (run);
                                         break;
@@ -817,7 +817,7 @@ public class Checkers {
                                     drawBoard(board);
                                     play(false, board, 1, 0, 0, 0, fileName);
                                     do {
-                                        System.out.println("\nSelect option:");
+                                        System.out.println("Select option:");
                                         System.out.println("  1. Start new game");
                                         System.out.print("  2. Quit\n  > ");
                                         switch (sc.nextLine().replaceAll("\\s+", "")) {
@@ -832,7 +832,7 @@ public class Checkers {
                                                 break;
 
                                             default:
-                                                System.out.println("Invalid option");
+                                                System.out.println("\nInvalid option.");
                                         }
                                     } while (run);
                                     run = false;
