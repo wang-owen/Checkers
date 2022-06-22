@@ -54,7 +54,7 @@ public class Checkers {
     /*
      * void drawBoard(char[][] board)
      * returns void
-     * takes in board as parameter
+     * char[][] board - board
      * Prints board array to console.
      */
     public static void drawBoard(char[][] board) {
@@ -91,8 +91,8 @@ public class Checkers {
 
     /*
      * int[] coordToIndex(String coord)
-     * returns array containing row and col coord
-     * takes in string version of coordinate
+     * returns integer array containing row and col coord
+     * String coord - string version of coordinate
      * Converts the <letter><number> coordinate system to array index.
      */
     public static int[] coordToIndex(String coord) {
@@ -110,7 +110,8 @@ public class Checkers {
      * String[][] initLegalCaptures(char[][] board, char piece, String coord, int[]
      * startCoord)
      * returns 2d array containing possible captured pieces and end pos
-     * takes in current board, current piece, and current string and index coord
+     * char[][] - current board, char piece - current piece, String coord - current
+     * string coord, int[] startCoord - index coord
      * Determines possible captures.
      */
     public static String[][] initLegalCaptures(char[][] board, char piece, String coord, int[] startCoord) {
@@ -167,7 +168,8 @@ public class Checkers {
      * String[] initLegalMoves(char[][] board, char piece, String coord, int[]
      * startCoord)
      * returns 2d array containing possible move coord
-     * takes in current board, current piece, and current string and index coord
+     * char[][] - current board, char piece - current piece, String coord - current
+     * string coord, int[] startCoord - index coord
      * Determines possible moves.
      */
     public static String[] initLegalMoves(char[][] board, char piece, String coord, int[] startCoord) {
@@ -215,8 +217,9 @@ public class Checkers {
      * void saveGame(char[][] board, int player, int turns, int p1Captures, int
      * p2Captures, String fileName)
      * returns void
-     * takes in current board, current player and turn, number of captures of each
-     * player, and file name
+     * char[][] - current board, int player - current player, int turns - turn
+     * count, int p1Captures - player 1 captures, int p2Captures - player 2
+     * captures, String fileName - file name
      * Saves game information to file.
      */
     public static void saveGame(char[][] board, int player, int turns, int p1Captures, int p2Captures,
@@ -247,7 +250,7 @@ public class Checkers {
     /*
      * char[][] retrieveGame(String fileName)
      * returns board state
-     * takes in file name
+     * String fileName - file name
      * Retrieves game state from file.
      */
     public static char[][] retrieveGame(String fileName) {
@@ -274,7 +277,7 @@ public class Checkers {
     /*
      * int[] retrieveGameinfo(String fileName)
      * returns integer array of game information
-     * takes in file name
+     * String fileName - file name
      * Retrieves game information from file.
      */
     public static int[] retrieveGameInfo(String fileName) {
@@ -300,7 +303,7 @@ public class Checkers {
     /*
      * boolean AI(char[][] board)
      * returns boolean of whether AI has captured piece
-     * takes in current board state
+     * char[][] board - current board state
      * Generates moveset for AI
      */
     public static boolean AI(char[][] board) {
@@ -374,8 +377,9 @@ public class Checkers {
      * play(boolean AI, char[][] board, int player, int turns, int p1Captured, int
      * p2Captured, String fileName)
      * returns void
-     * takes in whether AI is activated, board, current player and turn, amount of
-     * pieces captured by each player, and file name
+     * boolean AI - AI activation state, char[][] board - board state, int player -
+     * current player, int turns - turn count, int p1Captured - player 1 captures,
+     * int p2Captured - player 2 captures, String fileName - file name
      * Plays checkers.
      */
     public static void play(boolean AI, char[][] board, int player, int turns, int p1Captured, int p2Captured,
