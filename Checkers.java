@@ -473,8 +473,8 @@ public class Checkers {
                     } else if (coord.length() != 2 || coord.charAt(0) < 97 || coord.charAt(0) > 104
                             || coord.charAt(1) < 49
                             || coord.charAt(1) > 56) {
-                        System.out.println("\nInvalid coordinate.");
                         drawBoard(board);
+                        System.out.println("\nInvalid coordinate.");
                     } else {
                         startCoord = coordToIndex(coord);
 
