@@ -1,10 +1,22 @@
 import java.util.*;
 import java.io.*;
 
+/*
+    Checkers
+    Owen Wang
+    Last modified: 2022-06-22
+    Console-based checkers program.
+*/
 public class Checkers {
     // scanner variable
     public static Scanner sc = new Scanner(System.in);
 
+    /*
+     * char[][] generateBoard()
+     * returns empty board in 2d array
+     * no parameters
+     * Generates empty board
+     */
     public static char[][] generateBoard() {
         char[][] board = new char[8][8];
 
@@ -39,6 +51,12 @@ public class Checkers {
         return board;
     }
 
+    /*
+     * void drawBoard(char[][] board)
+     * returns void
+     * takes in board as parameter
+     * Prints board array to console.
+     */
     public static void drawBoard(char[][] board) {
         // print board borders
         System.out.print("\n  ");
@@ -71,6 +89,12 @@ public class Checkers {
         System.out.println("\n");
     }
 
+    /*
+     * int[] coordToIndex(String coord)
+     * returns array containing row and col coord
+     * takes in string version of coordinate
+     * Converts the <letter><number> coordinate system to array index.
+     */
     public static int[] coordToIndex(String coord) {
         // variable declaration
         int[] indexNums = new int[2]; // [col, row]
@@ -82,6 +106,13 @@ public class Checkers {
         return indexNums;
     }
 
+    /*
+     * String[][] initLegalCaptures(char[][] board, char piece, String coord, int[]
+     * startCoord)
+     * returns 2d array containing possible captured pieces and end pos
+     * takes in current board, current piece, and current string and index coord
+     * Determines possible captures.
+     */
     public static String[][] initLegalCaptures(char[][] board, char piece, String coord, int[] startCoord) {
         // variable declaration
         String[][] legalCaptures = new String[4][2];
@@ -132,6 +163,13 @@ public class Checkers {
         return legalCaptures;
     }
 
+    /*
+     * String[] initLegalMoves(char[][] board, char piece, String coord, int[]
+     * startCoord)
+     * returns 2d array containing possible move coord
+     * takes in current board, current piece, and current string and index coord
+     * Determines possible moves.
+     */
     public static String[] initLegalMoves(char[][] board, char piece, String coord, int[] startCoord) {
         // variable declaration
         String[] legalMoves = new String[4];
@@ -173,6 +211,14 @@ public class Checkers {
         return legalMoves;
     }
 
+    /*
+     * void saveGame(char[][] board, int player, int turns, int p1Captures, int
+     * p2Captures, String fileName)
+     * returns void
+     * takes in current board, current player and turn, number of captures of each
+     * player, and file name
+     * Saves game information to file.
+     */
     public static void saveGame(char[][] board, int player, int turns, int p1Captures, int p2Captures,
             String fileName) {
         BufferedWriter bw;
@@ -198,6 +244,12 @@ public class Checkers {
 
     }
 
+    /*
+     * char[][] retrieveGame(String fileName)
+     * returns board state
+     * takes in file name
+     * Retrieves game state from file.
+     */
     public static char[][] retrieveGame(String fileName) {
         // variable declaration
         char[][] board = new char[8][8];
@@ -219,6 +271,12 @@ public class Checkers {
         return board;
     }
 
+    /*
+     * int[] retrieveGameinfo(String fileName)
+     * returns integer array of game information
+     * takes in file name
+     * Retrieves game information from file.
+     */
     public static int[] retrieveGameInfo(String fileName) {
         // variable declaration
         int[] info = new int[4];
@@ -239,6 +297,12 @@ public class Checkers {
         return info;
     }
 
+    /*
+     * boolean AI(char[][] board)
+     * returns boolean of whether AI has captured piece
+     * takes in current board state
+     * Generates moveset for AI
+     */
     public static boolean AI(char[][] board) {
         // variable declaration
         boolean run = true, capture = false;
@@ -306,6 +370,14 @@ public class Checkers {
         return AICaptured;
     }
 
+    /*
+     * play(boolean AI, char[][] board, int player, int turns, int p1Captured, int
+     * p2Captured, String fileName)
+     * returns void
+     * takes in whether AI is activated, board, current player and turn, amount of
+     * pieces captured by each player, and file name
+     * Plays checkers.
+     */
     public static void play(boolean AI, char[][] board, int player, int turns, int p1Captured, int p2Captured,
             String fileName) {
         boolean run = true, playing = true, win = true, validMove = false;
