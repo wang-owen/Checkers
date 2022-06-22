@@ -306,24 +306,26 @@ public class Checkers {
      * char[][] board - current board state
      * Generates moveset for AI
      */
-    public static boolean AI(char[][] board) {
+    public static int AI(char[][] board) {
         // variable declaration
         boolean run = true, capture = false;
-        char piece = 'o';
+        char piece;
         String[][] legalCaptures;
         String[] legalMoves;
         int[] startCoord = new int[2], newCoord = new int[2], captured = new int[2];
-        boolean AICaptured = false;
+        String coord;
+        int AICaptured = 0;
 
         // check legal captures
         for (int row = 0; row < board.length & run; row++) {
             for (int col = 0; col < board[row].length & run; col++) {
-                if (board[row][col] == piece) {
+                piece = board[row][col];
+                if (Character.toLowerCase(piece) == 'o') {
                     startCoord[0] = col;
                     startCoord[1] = row;
                     legalCaptures = initLegalCaptures(board, piece, "" + (char) (col + 97) + (Math.abs(row - 8)),
                             startCoord);
-                    if (legalCaptures[0][0] != null) {
+                    while (legalCaptures[0][0] != null) {
                         // legal capture available
                         run = false;
                         capture = true;
@@ -340,7 +342,11 @@ public class Checkers {
                         board[startCoord[1]][startCoord[0]] = ' ';
                         board[newCoord[1]][newCoord[0]] = piece;
 
-                        AICaptured = true;
+                        coord = legalCaptures[0][1];
+                        startCoord[0] = newCoord[0];
+                        startCoord[1] = newCoord[1];
+                        legalCaptures = initLegalCaptures(board, piece, coord, startCoord);
+                        AICaptured++;
                     }
                 }
             }
@@ -351,7 +357,8 @@ public class Checkers {
             run = true;
             for (int row = 0; row < board.length & run; row++) {
                 for (int col = 0; col < board[row].length & run; col++) {
-                    if (board[row][col] == piece) {
+                    piece = board[row][col];
+                    if (Character.toLowerCase(piece) == 'o') {
                         startCoord[0] = col;
                         startCoord[1] = row;
                         legalMoves = initLegalMoves(board, piece, "" + (char) (col + 97) + (Math.abs(row - 8)),
@@ -404,8 +411,8 @@ public class Checkers {
             }
 
             if (player == 2 && AI) {
-                if (AI(board)) {
-                    p2Captured++;
+                if (AI(board) != 0) {
+                    p2Captured += AI(board);
                 }
                 drawBoard(board);
                 turns++;
@@ -542,6 +549,7 @@ public class Checkers {
                                 }
 
                                 // determine if another piece can be captured
+                                run = true;
                                 do {
                                     coord = legalCaptures[choice - 1][1];
                                     startCoord = coordToIndex(coord);
